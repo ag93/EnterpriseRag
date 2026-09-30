@@ -13,7 +13,7 @@ namespace EnterpriseRag.Api.Controllers
             return Ok(new
             {
                 status = "healthy"
-            });
+            }); 
         }
     }
 }
