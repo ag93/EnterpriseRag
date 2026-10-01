@@ -1,5 +1,6 @@
 using EnterpriseRag.Application.Abstractions;
 using EnterpriseRag.Application.Documents.UploadDocuments;
+using EnterpriseRag.Infrastructure.Documents;
 using EnterpriseRag.Infrastructure.Persistence;
 using EnterpriseRag.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(
         options.UseSqlite($"Data Source={databasePath}"));
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
+builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 var app = builder.Build();
 
 app.UseSwagger();
