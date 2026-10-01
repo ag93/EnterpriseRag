@@ -1,6 +1,7 @@
 ﻿using EnterpriseRag.Application.Abstractions;
 using EnterpriseRag.Application.Models;
 using UglyToad.PdfPig;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 namespace EnterpriseRag.Infrastructure.Documents
 {
@@ -10,14 +11,15 @@ namespace EnterpriseRag.Infrastructure.Documents
         {
             var pages = new List<PdfPageText>();
             using var document = PdfDocument.Open(pdfStream);
-            var pageNumber = 0;
 
             foreach(var page in document.GetPages())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                pageNumber++;
-                var text = page.Text;
-                pages.Add(new PdfPageText { PageNumber = pageNumber, Text = text });
+                var text = ContentOrderTextExtractor.GetText(page);
+                if (string.IsNullOrWhiteSpace(text))
+                    continue;
+                
+                pages.Add(new PdfPageText { PageNumber = page.Number, Text = text });
             }
             return Task.FromResult<IReadOnlyList<PdfPageText>>(pages);
         }

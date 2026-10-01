@@ -37,6 +37,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
 builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
+builder.Services.AddScoped<ITextChunker, SimpleTextChunker>();
 var app = builder.Build();
 
 app.UseSwagger();

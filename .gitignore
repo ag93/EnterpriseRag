@@ -483,3 +483,4 @@ $RECYCLE.BIN/
 
 # Local RAG seed documents
 data/seed-documents/
+data/documents/
