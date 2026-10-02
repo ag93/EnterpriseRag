@@ -33,4 +33,12 @@ public class DocumentRepository : IDocumentRepository
                 document => document.Id == id,
                 cancellationToken);
     }
+
+    public async Task<IReadOnlyList<DocumentChunk>> GetChunksAsync(Guid documentId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.DocumentChunks
+            .Where(x => x.DocumentId == documentId)
+            .OrderBy(x => x.ChunkIndex)
+            .ToListAsync(cancellationToken);
+    }
 }

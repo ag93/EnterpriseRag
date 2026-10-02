@@ -1,10 +1,14 @@
 using EnterpriseRag.Application.Abstractions;
+using EnterpriseRag.Application.Documents;
 using EnterpriseRag.Application.Documents.UploadDocuments;
+using EnterpriseRag.Infrastructure.AI;
 using EnterpriseRag.Infrastructure.Documents;
 using EnterpriseRag.Infrastructure.Persistence;
 using EnterpriseRag.Infrastructure.Storage;
+using EnterpriseRag.Infrastructure.VectorStore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using Qdrant.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +42,19 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
 builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 builder.Services.AddScoped<ITextChunker, SimpleTextChunker>();
+builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(
+    client =>
+    {
+        client.BaseAddress = new Uri("http://localhost:11434");
+    });
+
+builder.Services.AddSingleton(
+    new QdrantClient("localhost", 6334));
+
+builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
+builder.Services.AddScoped<IDocumentIndexer, DocumentIndexer>();
+builder.Services.AddScoped<IDocumentSearch, DocumentSearch>();
+
 var app = builder.Build();
 
 app.UseSwagger();
