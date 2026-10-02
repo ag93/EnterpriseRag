@@ -1,6 +1,7 @@
 using EnterpriseRag.Application.Abstractions;
 using EnterpriseRag.Application.Documents;
 using EnterpriseRag.Application.Documents.UploadDocuments;
+using EnterpriseRag.Application.RAG;
 using EnterpriseRag.Infrastructure.AI;
 using EnterpriseRag.Infrastructure.Documents;
 using EnterpriseRag.Infrastructure.Persistence;
@@ -48,6 +49,12 @@ builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(
         client.BaseAddress = new Uri("http://localhost:11434");
     });
 
+builder.Services.AddHttpClient<IChatService, OllamaChatService>(
+    client =>
+    {
+        client.BaseAddress = new Uri("http://localhost:11434");
+    });
+builder.Services.AddScoped<IRagService, RagService>();
 builder.Services.AddSingleton(
     new QdrantClient("localhost", 6334));
 
