@@ -1,6 +1,8 @@
 ﻿using EnterpriseRag.Application.Abstractions;
 using EnterpriseRag.Application.Models;
+using EnterpriseRag.Application.Rag;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace EnterpriseRag.Infrastructure.AI
 {
@@ -15,10 +17,37 @@ namespace EnterpriseRag.Infrastructure.AI
         public async Task<RagAnswer> GenerateAsync(RagContext context, CancellationToken cancellationToken)
         {
             var prompt = BuildPrompt(context);
+
+            var responseSchema = new
+            {
+                type = "object",
+                properties = new
+                {
+                    answer = new
+                    {
+                        type = "string"
+                    },
+                    citationIds = new
+                    {
+                        type = "array",
+                        items = new
+                        {
+                            type = "integer"
+                        }
+                    }
+                },
+                required = new[]
+                {
+                    "answer",
+                    "citationIds"
+                }
+            };
+
             var request = new
             {
                 model = "qwen3:8b",
                 stream = false,
+                format = responseSchema,
                 messages = new[]
                  {
                     new
@@ -28,7 +57,10 @@ namespace EnterpriseRag.Infrastructure.AI
                             "You are a helpful assistant. " +
                             "Answer questions using only the provided context. " +
                             "If the context does not contain enough information, " +
-                            "say that you do not have enough information."
+                            "say that you do not have enough information." +
+                            "Do not mention context numbers, context IDs, or the retrieval process in your answer." +
+                            "Return only the answer to the user's question." +
+                            "Use citationIds only to identify which context items support your answer."
                     },
                     new
                     {
@@ -43,22 +75,30 @@ namespace EnterpriseRag.Infrastructure.AI
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<OllamaChatResponse>(cancellationToken);
+
             if (result is null || result.Message is null)
             {
                 throw new InvalidOperationException(
                     "Ollama returned an empty chat response.");
             }
 
+            var ollamaResult = JsonSerializer.Deserialize<OllamaRagResponse>(result.Message.Content,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (ollamaResult is null)
+            {
+                throw new InvalidOperationException(
+                    "Ollama returned an invalid RAG response.");
+            }
+
+            var citations = RagCitationMapper.Map(ollamaResult.CitationIds, context.Results);
             return new RagAnswer
             {
-                Answer = result.Message.Content,
-                Citations = context.Results.Select(result => new RagCitation
-                {
-                    DocumentId = result.DocumentId,
-                    ChunkId = result.ChunkId,
-                    FileName = result.FileName,
-                    PageNumber = result.PageNumber,
-                }).ToList(),
+                Answer = ollamaResult.Answer,
+                Citations = citations
             };
         }
 
@@ -68,19 +108,28 @@ namespace EnterpriseRag.Infrastructure.AI
                 "\n\n",
                 context.Results.Select((result, index) =>
                     $"""
-                [Source {index + 1} - Page {result.PageNumber}]
-                {result.Content}
-                """));
+                    [Context {index + 1}]
+                    File: {result.FileName}
+                    Page: {result.PageNumber}
+                    Content:
+                    {result.Content}
+                    """));
 
             return $"""
-                Use the following context to answer the question.
+            Use the following context to answer the question.
 
-                Context:
-                {contextText}
+            Each context item has a number.
+            If you use information from a context item,
+            include its number in the citationIds array.
 
-                Question:
-                {context.Question}
-                """;
+            Only use citation IDs that exist in the provided context.
+
+            Context:
+            {contextText}
+
+            Question:
+            {context.Question}
+            """;
         }
 
         private sealed class OllamaChatResponse
@@ -91,6 +140,12 @@ namespace EnterpriseRag.Infrastructure.AI
         private sealed class OllamaMessage
         {
             public string Content { get; set; } = string.Empty;
+        }
+
+        private sealed class OllamaRagResponse
+        {
+            public string Answer { get; set; } = string.Empty;
+            public List<int> CitationIds { get; set; } = [];
         }
     }
 }
