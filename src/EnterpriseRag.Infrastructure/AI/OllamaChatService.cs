@@ -52,7 +52,13 @@ namespace EnterpriseRag.Infrastructure.AI
             return new RagAnswer
             {
                 Answer = result.Message.Content,
-                Sources = context.Results
+                Citations = context.Results.Select(result => new RagCitation
+                {
+                    DocumentId = result.DocumentId,
+                    ChunkId = result.ChunkId,
+                    FileName = result.FileName,
+                    PageNumber = result.PageNumber,
+                }).ToList(),
             };
         }
 

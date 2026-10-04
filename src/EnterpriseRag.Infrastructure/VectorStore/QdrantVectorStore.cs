@@ -25,6 +25,7 @@ namespace EnterpriseRag.Infrastructure.VectorStore
                 Vectors = record.Embedding,
                 Payload =
                 {
+                    ["fileName"] = record.FileName.ToString(),
                     ["chunkId"] = record.ChunkId.ToString(),
                     ["documentId"] = record.DocumentId.ToString(),
                     ["content"] = record.Content,
@@ -57,6 +58,8 @@ namespace EnterpriseRag.Infrastructure.VectorStore
 
                 DocumentId = Guid.Parse(
                     result.Payload["documentId"].StringValue),
+
+                FileName = result.Payload["fileName"].StringValue,
 
                 Content = result.Payload["content"].StringValue,
 

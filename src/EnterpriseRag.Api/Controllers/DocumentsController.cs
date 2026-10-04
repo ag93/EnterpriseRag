@@ -1,4 +1,6 @@
-﻿using EnterpriseRag.Application.Documents.UploadDocuments;
+﻿using EnterpriseRag.Application.Abstractions;
+using EnterpriseRag.Application.Documents.UploadDocuments;
+using EnterpriseRag.Infrastructure.Documents;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnterpriseRag.Api.Controllers
@@ -8,10 +10,12 @@ namespace EnterpriseRag.Api.Controllers
     public class DocumentsController : ControllerBase
     {
         private readonly UploadDocumentHandler _uploadDocumentHandler;
+        private readonly IDocumentIndexer _documentIndexer;
 
-        public DocumentsController(UploadDocumentHandler uploadDocumentHandler)
+        public DocumentsController(UploadDocumentHandler uploadDocumentHandler, IDocumentIndexer documentIndexer)
         {
             _uploadDocumentHandler = uploadDocumentHandler;
+            _documentIndexer = documentIndexer;
         }
 
         [HttpPost]
@@ -36,6 +40,20 @@ namespace EnterpriseRag.Api.Controllers
                 cancellationToken);
 
             return Ok(document);
+        }
+
+        [HttpPost("{documentId:guid}/index")]
+        public async Task<IActionResult> Index(Guid documentId, CancellationToken cancellationToken)
+        {
+            await _documentIndexer.IndexAsync(
+                documentId,
+                cancellationToken);
+
+            return Ok(new
+            {
+                documentId,
+                indexed = true
+            });
         }
     }
 }

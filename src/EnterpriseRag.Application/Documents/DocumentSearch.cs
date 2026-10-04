@@ -37,6 +37,7 @@ namespace EnterpriseRag.Application.Documents
             .Select(result => new SearchResult
             {
                 DocumentId = result.DocumentId,
+                FileName = result.FileName,
                 ChunkId = result.ChunkId,
                 Content = result.Content,
                 PageNumber = result.PageNumber,

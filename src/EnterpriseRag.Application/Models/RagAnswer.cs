@@ -3,6 +3,6 @@
     public class RagAnswer
     {
         public string Answer { get; set; } = string.Empty;
-        public IReadOnlyList<SearchResult> Sources { get; set; } = [];
+        public IReadOnlyList<RagCitation> Citations { get; set; } = [];
     }
 }
