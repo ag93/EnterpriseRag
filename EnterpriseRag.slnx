@@ -6,6 +6,7 @@
     <Project Path="src/EnterpriseRag.Infrastructure/EnterpriseRag.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/EnterpriseRag.IntegrationTests/EnterpriseRag.IntegrationTests.csproj" Id="82090c3e-99c1-4541-9bd1-0d51d9e9aef8" />
     <Project Path="tests/EnterpriseRag.Application.Tests/EnterpriseRag.Application.Tests.csproj" />
   </Folder>
 </Solution>

@@ -20,4 +20,8 @@
     <ProjectReference Include="..\EnterpriseRag.Infrastructure\EnterpriseRag.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="data\documents\" />
+  </ItemGroup>
+
 </Project>
