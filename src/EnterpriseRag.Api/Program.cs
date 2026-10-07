@@ -5,6 +5,7 @@ using EnterpriseRag.Application.RAG;
 using EnterpriseRag.Infrastructure.AI;
 using EnterpriseRag.Infrastructure.Documents;
 using EnterpriseRag.Infrastructure.Persistence;
+using EnterpriseRag.Infrastructure.Search;
 using EnterpriseRag.Infrastructure.Storage;
 using EnterpriseRag.Infrastructure.VectorStore;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,7 @@ builder.Services.AddSingleton(
 builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
 builder.Services.AddScoped<IDocumentIndexer, DocumentIndexer>();
 builder.Services.AddScoped<IDocumentSearch, DocumentSearch>();
+builder.Services.AddScoped<IReranker, KeywordReranker>(); 
 
 var app = builder.Build();
 

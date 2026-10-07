@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\EnterpriseRag.Application\EnterpriseRag.Application.csproj" />
+    <ProjectReference Include="..\..\src\EnterpriseRag.Infrastructure\EnterpriseRag.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

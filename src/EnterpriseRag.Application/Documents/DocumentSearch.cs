@@ -7,11 +7,15 @@ namespace EnterpriseRag.Application.Documents
     {
         private readonly IEmbeddingService _embeddingService;
         private readonly IVectorStore _vectorStore;
+        private readonly IReranker _reranker;
+        private readonly bool _enableReranking;
 
-        public DocumentSearch(IEmbeddingService embeddingService, IVectorStore vectorStore)
+        public DocumentSearch(IEmbeddingService embeddingService, IVectorStore vectorStore, IReranker reranker, bool enableReranking = true)
         {
             _embeddingService = embeddingService;
             _vectorStore = vectorStore;
+            _reranker = reranker;
+            _enableReranking = enableReranking;
         }
 
         public async Task<IReadOnlyList<SearchResult>> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
@@ -30,19 +34,37 @@ namespace EnterpriseRag.Application.Documents
                     nameof(request));
             }
 
-            var embedding = await _embeddingService.GenerateEmbeddingAsync(request.Query, cancellationToken);
-            var vectorResults = await _vectorStore.SearchAsync(embedding, request.TopK, cancellationToken);
-
-            return vectorResults
-            .Select(result => new SearchResult
+            if (request.CandidateCount < request.TopK)
             {
-                DocumentId = result.DocumentId,
-                FileName = result.FileName,
-                ChunkId = result.ChunkId,
-                Content = result.Content,
-                PageNumber = result.PageNumber,
-                Score = result.Score
-            }).ToList();
+                throw new ArgumentException(
+                    "CandidateCount must be greater than or equal to TopK.",
+                    nameof(request));
+            }
+
+            var embedding = await _embeddingService.GenerateEmbeddingAsync(request.Query, cancellationToken);
+            var candidates = await _vectorStore.SearchAsync(embedding, request.CandidateCount, cancellationToken);
+
+            var searchResults = candidates
+                .Select(result => new SearchResult
+                {
+                    DocumentId = result.DocumentId,
+                    ChunkId = result.ChunkId,
+                    FileName = result.FileName,
+                    Content = result.Content,
+                    PageNumber = result.PageNumber,
+                    Score = result.Score
+                })
+                .ToList();
+
+            if (!_enableReranking)
+            {
+                return searchResults
+                    .Take(request.TopK)
+                    .ToList();
+            }
+
+            var reranked = await _reranker.RerankAsync(request.Query, searchResults, cancellationToken);
+            return reranked.Take(request.TopK).ToList();
         }
     }
 }

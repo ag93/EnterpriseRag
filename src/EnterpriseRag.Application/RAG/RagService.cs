@@ -26,7 +26,8 @@ namespace EnterpriseRag.Application.RAG
             var searchRequest = new SearchRequest
             {
                 Query = question,
-                TopK = 5
+                TopK = 5,
+                CandidateCount = 20
             };
 
             var results = await _documentSearch.SearchAsync(searchRequest, cancellationToken);

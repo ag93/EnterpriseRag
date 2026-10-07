@@ -3,8 +3,11 @@ using EnterpriseRag.Application.Documents;
 using EnterpriseRag.Application.Models;
 using EnterpriseRag.Application.Retrieval;
 using EnterpriseRag.Infrastructure.AI;
+using EnterpriseRag.Infrastructure.Search;
 using EnterpriseRag.Infrastructure.VectorStore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Qdrant.Client;
 using Xunit.Abstractions;
@@ -38,14 +41,24 @@ public class RetrievalEvaluationTests
 
         services.AddScoped<IDocumentSearch, DocumentSearch>();
 
+        services.AddScoped<IReranker, KeywordReranker>();
+
         await using var serviceProvider = services.BuildServiceProvider();
 
         using var scope = serviceProvider.CreateScope();
 
-        var documentSearch = scope.ServiceProvider.GetRequiredService<IDocumentSearch>();
+        //Default -> Includes reranking.
+        //var documentSearch = scope.ServiceProvider.GetRequiredService<IDocumentSearch>();
+
+        // Without Reranking. 
+        // Disable reranking so this test measures raw semantic retrieval.
+        var embeddingService = scope.ServiceProvider.GetRequiredService<IEmbeddingService>();
+        var vectorStore = scope.ServiceProvider.GetRequiredService<IVectorStore>();
+        var reranker = scope.ServiceProvider.GetRequiredService<IReranker>();
+        var documentSearch = new DocumentSearch(embeddingService, vectorStore, reranker, enableReranking: false);
 
         var results = new List<RetrievalEvaluationResult>();
-
+        var diversityCounts = new List<int>();
         foreach (var testCase in RetrievalTestCases.All)
         {
             var searchResults =
@@ -53,10 +66,17 @@ public class RetrievalEvaluationTests
                     new SearchRequest
                     {
                         Query = testCase.Query,
-                        TopK = 5
+                        TopK = 5,
+                        CandidateCount = 20
                     },
                     CancellationToken.None);
 
+            var uniqueDocumentCount =
+                searchResults
+                    .Select(result => result.DocumentId)
+                    .Distinct()
+                    .Count();
+            diversityCounts.Add(uniqueDocumentCount);
             var firstRelevantRank =
                 searchResults
                     .Select((result, index) => new
@@ -71,8 +91,30 @@ public class RetrievalEvaluationTests
                     .Select(x => (int?)x.Rank)
                     .FirstOrDefault();
 
+            var highestSemanticScore =
+                searchResults.Max(result => result.Score);
+
+            var lowestTop5SemanticScore =
+                searchResults.Min(result => result.Score);
+
+            _output.WriteLine(
+                $"    HighestSemanticScore={highestSemanticScore:F3} | " +
+                $"LowestTop5SemanticScore={lowestTop5SemanticScore:F3}");
+
             var hitAt5 =
                 firstRelevantRank.HasValue;
+
+            _output.WriteLine(
+                $"\n{testCase.Name} | " +
+                $"Hit@5={hitAt5} | " +
+                $"FirstRelevantRank={firstRelevantRank?.ToString() ?? "-"} | " +
+                $"UniqueDocuments={uniqueDocumentCount}");
+            foreach (var result in searchResults)
+            {
+                _output.WriteLine(
+                    $"    {result.FileName} | " +
+                    $"SemanticScore={result.Score:F3}");
+            }
 
             results.Add(
                 new RetrievalEvaluationResult
@@ -85,13 +127,9 @@ public class RetrievalEvaluationTests
                 });
         }
 
-        foreach (var result in results)
-        {
-            _output.WriteLine(
-                $"{result.Name} | " +
-                $"Hit@5={result.HitAt5} | " +
-                $"FirstRelevantRank={result.FirstRelevantRank?.ToString() ?? "-"}");
-        }
+        var averageUniqueDocuments = diversityCounts.Average();
+
+        _output.WriteLine($"\nAverageUniqueDocumentsInTop5: {averageUniqueDocuments:F2}");
 
         var expectedRetrievalCases =
             RetrievalTestCases.All
