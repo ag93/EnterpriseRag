@@ -1,4 +1,4 @@
-﻿namespace EnterpriseRag.IntegrationTests
+﻿namespace EnterpriseRag.IntegrationTests.Retrieval
 {
     public class RetrievalEvaluationResult
     {
