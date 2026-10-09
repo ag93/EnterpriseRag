@@ -128,4 +128,46 @@ public class RagCitationMapperTests
 
         Assert.Empty(citations);
     }
+
+    [Fact]
+    public void Map_DeduplicatesCitationsForSameDocumentAndPage()
+    {
+        // Arrange
+        var documentId = Guid.NewGuid();
+
+        var results = new List<SearchResult>
+        {
+            new()
+            {
+                DocumentId = documentId,
+                ChunkId = Guid.NewGuid(),
+                FileName = "Travel Guide.pdf",
+                PageNumber = 1
+            },
+            new()
+            {
+                DocumentId = documentId,
+                ChunkId = Guid.NewGuid(),
+                FileName = "Travel Guide.pdf",
+                PageNumber = 1
+            },
+            new()
+            {
+                DocumentId = documentId,
+                ChunkId = Guid.NewGuid(),
+                FileName = "Travel Guide.pdf",
+                PageNumber = 2
+            }
+        };
+
+        // Act
+        var citations = RagCitationMapper.Map(
+            new[] { 1, 2, 3 },
+            results);
+
+        // Assert
+        Assert.Equal(2, citations.Count);
+        Assert.Contains(citations, c => c.PageNumber == 1);
+        Assert.Contains(citations, c => c.PageNumber == 2);
+    }
 }

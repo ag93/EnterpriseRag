@@ -60,7 +60,9 @@ namespace EnterpriseRag.Infrastructure.AI
                             "say that you do not have enough information." +
                             "Do not mention context numbers, context IDs, or the retrieval process in your answer." +
                             "Return only the answer to the user's question." +
-                            "Use citationIds only to identify which context items support your answer."
+                            "Include in citationIds only the context items that directly support the facts stated in your answer." +
+                            "Do not cite context items that are unrelated to the answer, even if they are present in the provided context." +
+                            "If no context item supports the answer, return an empty citationIds array."
                     },
                     new
                     {

@@ -5,9 +5,10 @@ namespace EnterpriseRag.Infrastructure.Search;
 
 public class KeywordReranker : IReranker
 {
-    private const double SemanticWeight = 0.70;
+    private const double SemanticWeight = 0.60;
     private const double KeywordWeight = 0.20;
     private const double PhraseWeight = 0.10;
+    private const double FilenameWeight = 0.10;
     public Task<IReadOnlyList<SearchResult>> RerankAsync(string query, IReadOnlyList<SearchResult> results, CancellationToken cancellationToken)
     {
         var queryTerms = Tokenize(query);
@@ -16,11 +17,12 @@ public class KeywordReranker : IReranker
             {
                 var keywordScore = CalculateKeywordScore(result.Content, queryTerms);
                 var phraseScore = CalculatePhraseScore(query, result.Content);
-
+                var filenameScore = CalculateKeywordScore(Path.GetFileNameWithoutExtension(result.FileName), queryTerms);
                 var finalScore =
                     (SemanticWeight * result.Score) +
                     (KeywordWeight * keywordScore) +
-                    (PhraseWeight * phraseScore);
+                    (PhraseWeight * phraseScore) +
+                    (FilenameWeight * filenameScore);
 
                 return new
                 {

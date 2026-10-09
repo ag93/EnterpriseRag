@@ -4,24 +4,23 @@ namespace EnterpriseRag.Application.Rag;
 
 public static class RagCitationMapper
 {
-    public static IReadOnlyList<RagCitation> Map(
-        IEnumerable<int> citationIds,
-        IReadOnlyList<SearchResult> results)
+    public static IReadOnlyList<RagCitation> Map(IEnumerable<int> citationIds,IReadOnlyList<SearchResult> results)
     {
         return citationIds
             .Distinct()
             .Where(id => id >= 1 && id <= results.Count)
-            .Select(id =>
+            .Select(id => results[id - 1])
+            .DistinctBy(result => new
             {
-                var result = results[id - 1];
-
-                return new RagCitation
-                {
-                    DocumentId = result.DocumentId,
-                    ChunkId = result.ChunkId,
-                    FileName = result.FileName,
-                    PageNumber = result.PageNumber
-                };
+                result.DocumentId,
+                result.PageNumber
+            })
+            .Select(result => new RagCitation
+            {
+                DocumentId = result.DocumentId,
+                ChunkId = result.ChunkId,
+                FileName = result.FileName,
+                PageNumber = result.PageNumber
             })
             .ToList();
     }
