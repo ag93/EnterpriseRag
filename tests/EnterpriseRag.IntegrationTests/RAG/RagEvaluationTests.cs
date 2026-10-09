@@ -13,7 +13,8 @@ namespace EnterpriseRag.IntegrationTests.RAG;
 
 public class RagEvaluationTests
 {
-    private const int RetrievalCount = 20;
+    private const int TopKCount = 10;
+    private const int CandidateCount = 20;
 
     private readonly ITestOutputHelper _output;
 
@@ -133,7 +134,7 @@ public class RagEvaluationTests
 
         var baselineVectorResults = await vectorStore.SearchAsync(
             queryEmbedding,
-            RetrievalCount,
+            TopKCount,
             null,
             CancellationToken.None);
 
@@ -154,8 +155,8 @@ public class RagEvaluationTests
             new SearchRequest
             {
                 Query = testCase.Question,
-                TopK = RetrievalCount,
-                CandidateCount = RetrievalCount
+                TopK = TopKCount,
+                CandidateCount = CandidateCount
             },
             CancellationToken.None);
         retrievalResults[testCase.Name] = (baselineResults, rerankedResults);
