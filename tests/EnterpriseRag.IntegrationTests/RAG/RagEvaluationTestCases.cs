@@ -39,19 +39,6 @@
 
             new()
             {
-                Name = "A350 multi-context question",
-                Question =
-                    "How many passengers does the Airbus A350 have, and how many are in CloudLux, CloudElite, and CloudSaver?",
-                AnswerExpected = true,
-                ExpectedAnswerFragments = ["320", "8","42","238"],
-                ExpectedFileNames =
-                [
-                    "Airbus A350.pdf"
-                ]
-            },
-
-            new()
-            {
                 Name = "A350 maximum speed",
                 Question =
                     "What is the maximum speed of the CloudWay 24 Airbus A350?",
@@ -66,6 +53,19 @@
                     "How many passengers does the Boeing 737 Max 10 have?",
                 AnswerExpected = false,
                 ExpectedFileNames = []
+            },
+
+            new()
+            {
+                Name = "A350 multi-context question",
+                Question =
+                    "How many passengers does the Airbus A350 have, and how many are in CloudLux, CloudElite, and CloudSaver?",
+                AnswerExpected = true,
+                ExpectedAnswerFragments = ["320", "8","42","238"],
+                ExpectedFileNames =
+                [
+                    "Airbus A350.pdf"
+                ]
             }
         ];
     }

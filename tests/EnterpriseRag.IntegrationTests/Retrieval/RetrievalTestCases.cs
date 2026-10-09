@@ -85,6 +85,14 @@ public static class RetrievalTestCases
             Query = "What type of engine does the CloudWay 24 Airbus A350 use?",
             ExpectedFileNames = ["Airbus A350.pdf"],
             AnswerExpected = false
+        },
+
+        new()
+        {
+            Name = "A350 multi-chunk",
+            Query = "How many passengers does the Airbus A350 have, and how many are in CloudLux, CloudElite, and CloudSaver?",
+            ExpectedFileNames = ["Airbus A350.pdf"],
+            AnswerExpected = false
         }
     ];
 }

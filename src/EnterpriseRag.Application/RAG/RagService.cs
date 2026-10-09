@@ -26,7 +26,7 @@ namespace EnterpriseRag.Application.RAG
             var searchRequest = new SearchRequest
             {
                 Query = question,
-                TopK = 5,
+                TopK = 20,
                 CandidateCount = 20
             };
 

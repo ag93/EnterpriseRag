@@ -17,7 +17,6 @@ namespace EnterpriseRag.Infrastructure.AI
         public async Task<RagAnswer> GenerateAsync(RagContext context, CancellationToken cancellationToken)
         {
             var prompt = BuildPrompt(context);
-
             var responseSchema = new
             {
                 type = "object",
@@ -46,6 +45,7 @@ namespace EnterpriseRag.Infrastructure.AI
             var request = new
             {
                 model = "qwen3:8b",
+                think = false,
                 stream = false,
                 format = responseSchema,
                 messages = new[]

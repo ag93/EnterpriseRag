@@ -1,4 +1,5 @@
-﻿using EnterpriseRag.Application.Abstractions;
+﻿using EnterpriseRag.Application;
+using EnterpriseRag.Application.Abstractions;
 using EnterpriseRag.Application.Models;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
@@ -39,15 +40,19 @@ namespace EnterpriseRag.Infrastructure.VectorStore
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<IReadOnlyList<VectorSearchResult>> SearchAsync(float[] embedding, int topK, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<VectorSearchResult>> SearchAsync(float[] embedding, int topK, DocumentSearchFilter? filter, CancellationToken cancellationToken)
         {
+            if (filter?.DocumentIds is { Count: 0 })
+                return Array.Empty<VectorSearchResult>();
+            
             await EnsureCollectionAsync();
-
+                        
             var results = await _client.QueryAsync(
                 collectionName: CollectionName,
                 query: embedding,
                 payloadSelector: true,
                 limit: (ulong)topK,
+                filter: BuildFilter(filter),
                 cancellationToken: cancellationToken);
 
             return results
@@ -82,6 +87,35 @@ namespace EnterpriseRag.Infrastructure.VectorStore
                     Size = VectorSize,
                     Distance = Distance.Cosine
                 });
+        }
+        private static Filter? BuildFilter(DocumentSearchFilter? filter)
+        {
+            //null means no filter, so all documents are eligible.
+            //One ID creates one condition.
+            //Multiple IDs create multiple Should conditions. Qdrant treats these as OR conditions, so a chunk can match any allowed document.
+            if (filter?.DocumentIds is null)
+            {
+                return null;
+            }
+
+            return new Filter
+            {
+                Should =
+                {
+                    filter.DocumentIds.Select(documentId =>
+                        new Condition
+                        {
+                            Field = new FieldCondition
+                            {
+                                Key = "documentId",
+                                Match = new Match
+                                {
+                                    Keyword = documentId.ToString()
+                                }
+                            }
+                        })
+                }
+            };
         }
     }
 }

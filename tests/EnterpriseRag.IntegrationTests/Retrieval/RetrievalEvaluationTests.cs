@@ -6,9 +6,6 @@ using EnterpriseRag.Infrastructure.AI;
 using EnterpriseRag.Infrastructure.Search;
 using EnterpriseRag.Infrastructure.VectorStore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Qdrant.Client;
 using Xunit.Abstractions;
 
@@ -67,7 +64,8 @@ public class RetrievalEvaluationTests
                     {
                         Query = testCase.Query,
                         TopK = 5,
-                        CandidateCount = 20
+                        CandidateCount = 20,
+                        Filter = testCase.Filter
                     },
                     CancellationToken.None);
 

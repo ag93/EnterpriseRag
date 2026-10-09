@@ -1,13 +1,11 @@
 ﻿using EnterpriseRag.Application.Abstractions;
 using EnterpriseRag.Application.Documents;
-using EnterpriseRag.Application.Models;
 using EnterpriseRag.Application.RAG;
 using EnterpriseRag.Infrastructure.AI;
 using EnterpriseRag.Infrastructure.Search;
 using EnterpriseRag.Infrastructure.VectorStore;
 using Microsoft.Extensions.DependencyInjection;
 using Qdrant.Client;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace EnterpriseRag.IntegrationTests.RAG;
