@@ -2,6 +2,7 @@ using EnterpriseRag.Application.Abstractions;
 using EnterpriseRag.Application.Documents;
 using EnterpriseRag.Application.Documents.UploadDocuments;
 using EnterpriseRag.Application.RAG;
+using EnterpriseRag.Infrastructure;
 using EnterpriseRag.Infrastructure.AI;
 using EnterpriseRag.Infrastructure.Documents;
 using EnterpriseRag.Infrastructure.Persistence;
@@ -62,7 +63,8 @@ builder.Services.AddSingleton(
 builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
 builder.Services.AddScoped<IDocumentIndexer, DocumentIndexer>();
 builder.Services.AddScoped<IDocumentSearch, DocumentSearch>();
-builder.Services.AddScoped<IReranker, KeywordReranker>(); 
+builder.Services.AddScoped<IReranker, KeywordReranker>();
+builder.Services.AddScoped<ICitationValidator, CitationValidator>();
 
 var app = builder.Build();
 

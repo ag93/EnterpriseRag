@@ -2,6 +2,7 @@
 using EnterpriseRag.Application.Documents;
 using EnterpriseRag.Application.Models;
 using EnterpriseRag.Application.RAG;
+using EnterpriseRag.Infrastructure;
 using EnterpriseRag.Infrastructure.AI;
 using EnterpriseRag.Infrastructure.Search;
 using EnterpriseRag.Infrastructure.VectorStore;
@@ -47,6 +48,7 @@ public class RagEvaluationTests
         services.AddScoped<IReranker, KeywordReranker>();
         services.AddScoped<IDocumentSearch, DocumentSearch>();
         services.AddScoped<IRagService, RagService>();
+        services.AddScoped<ICitationValidator, CitationValidator>();
 
         await using var serviceProvider = services.BuildServiceProvider();
         using var scope = serviceProvider.CreateScope();
