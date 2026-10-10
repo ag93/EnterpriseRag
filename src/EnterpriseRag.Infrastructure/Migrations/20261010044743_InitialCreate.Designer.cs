@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnterpriseRag.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260930214728_InitialCreate")]
+    [Migration("20261010044743_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -105,13 +105,11 @@ namespace EnterpriseRag.Infrastructure.Migrations
 
             modelBuilder.Entity("EnterpriseRag.Domain.DocumentChunk", b =>
                 {
-                    b.HasOne("EnterpriseRag.Domain.Document", "Document")
+                    b.HasOne("EnterpriseRag.Domain.Document", null)
                         .WithMany("Chunks")
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Document");
                 });
 
             modelBuilder.Entity("EnterpriseRag.Domain.Document", b =>

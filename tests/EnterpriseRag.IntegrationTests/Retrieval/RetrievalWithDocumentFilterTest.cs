@@ -35,7 +35,7 @@ namespace EnterpriseRag.IntegrationTests.Retrieval
             using var scope = serviceProvider.CreateScope();
             var documentSearch = scope.ServiceProvider.GetRequiredService<IDocumentSearch>();
 
-            var a350DocumentId = Guid.Parse("87af20e4-26e2-47e4-9493-133084356577");
+            var a350DocumentId = Guid.Parse("98C8407A-48AD-408F-AFDE-43123734FF0D");
 
             var request = new SearchRequest
             {
@@ -91,9 +91,9 @@ namespace EnterpriseRag.IntegrationTests.Retrieval
             using var scope = serviceProvider.CreateScope();
             var documentSearch = scope.ServiceProvider.GetRequiredService<IDocumentSearch>();
 
-            var a350DocumentId = Guid.Parse("87af20e4-26e2-47e4-9493-133084356577");
-            var a380DocumentId = Guid.Parse("0e6c516f-cd93-4852-a753-511db35c9f76");
-            var b787DocumentId = Guid.Parse("e390d8d7-5f8a-4241-9f91-4c1d368618ba");
+            var a350DocumentId = Guid.Parse("98C8407A-48AD-408F-AFDE-43123734FF0D");
+            var a380DocumentId = Guid.Parse("F609DE00-284E-4738-8D0C-9B8BA6026901");
+            var b787DocumentId = Guid.Parse("21DEE4E0-1C97-42A4-876D-4783C2AE7C9E");
 
             var request = new SearchRequest
             {

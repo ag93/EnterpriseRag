@@ -5,10 +5,10 @@ namespace EnterpriseRag.Infrastructure.Search;
 
 public class KeywordReranker : IReranker
 {
-    private const double SemanticWeight = 0.60;
+    private const double SemanticWeight = 0.55;
     private const double KeywordWeight = 0.20;
     private const double PhraseWeight = 0.10;
-    private const double FilenameWeight = 0.10;
+    private const double FilenameWeight = 0.15;
     public Task<IReadOnlyList<SearchResult>> RerankAsync(string query, IReadOnlyList<SearchResult> results, CancellationToken cancellationToken)
     {
         var queryTerms = Tokenize(query);

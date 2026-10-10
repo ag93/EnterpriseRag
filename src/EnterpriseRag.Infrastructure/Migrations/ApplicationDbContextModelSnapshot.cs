@@ -102,13 +102,11 @@ namespace EnterpriseRag.Infrastructure.Migrations
 
             modelBuilder.Entity("EnterpriseRag.Domain.DocumentChunk", b =>
                 {
-                    b.HasOne("EnterpriseRag.Domain.Document", "Document")
+                    b.HasOne("EnterpriseRag.Domain.Document", null)
                         .WithMany("Chunks")
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Document");
                 });
 
             modelBuilder.Entity("EnterpriseRag.Domain.Document", b =>

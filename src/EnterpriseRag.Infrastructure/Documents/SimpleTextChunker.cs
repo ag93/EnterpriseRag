@@ -6,8 +6,8 @@ namespace EnterpriseRag.Infrastructure.Documents
 {
     public class SimpleTextChunker : ITextChunker
     {
-        private const int MaxCharacters = 1000;
-        private const int OverlapCharacters = 150;
+        private const int MaxCharacters = 800;
+        private const int OverlapCharacters = 200;
 
         public IReadOnlyList<TextChunk> Chunk(IReadOnlyList<PdfPageText> pages)
         {

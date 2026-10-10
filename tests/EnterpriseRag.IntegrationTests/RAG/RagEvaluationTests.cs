@@ -14,7 +14,7 @@ namespace EnterpriseRag.IntegrationTests.RAG;
 
 public class RagEvaluationTests
 {
-    private const int TopKCount = 10;
+    private const int TopKCount = 5;
     private const int CandidateCount = 20;
 
     private readonly ITestOutputHelper _output;
@@ -238,19 +238,19 @@ public class RagEvaluationTests
     }
 
 
-    private static void WriteRetrievalMetrics(RagEvaluationTestCase testCase, IReadOnlyList<SearchResult> baselineResults, IReadOnlyList<SearchResult> rerankedResults)
+    private void WriteRetrievalMetrics(RagEvaluationTestCase testCase, IReadOnlyList<SearchResult> baselineResults, IReadOnlyList<SearchResult> rerankedResults)
     {
         if (!testCase.AnswerExpected ||
             testCase.ExpectedAnswerFragments.Length == 0)
         {
-            Console.WriteLine( 
+            _output.WriteLine( 
                 "   Retrieval metrics skipped: no expected answer fragments.");
             return;
         }
 
-        int[] cutoffs = [1, 3, 5, 10];
+        int[] cutoffs = [1, 3, 5];
 
-        Console.WriteLine("   Answer-bearing chunk retrieval metrics:");
+        _output.WriteLine("   Answer-bearing chunk retrieval metrics:");
 
         foreach (int cutoff in cutoffs)
         {
@@ -264,7 +264,7 @@ public class RagEvaluationTests
 
             int totalFragments = testCase.ExpectedAnswerFragments.Length;
 
-            Console.WriteLine(
+            _output.WriteLine(
                 $"     Hit@{cutoff}: " +
                 $"before {baselineHits}/{totalFragments}, " +
                 $"after {rerankedHits}/{totalFragments}");
@@ -310,7 +310,7 @@ public class RagEvaluationTests
         return 0.0;
     }
 
-    private static void WriteMrrDiagnostics(
+    private void WriteMrrDiagnostics(
         RagEvaluationTestCase testCase,
         IReadOnlyList<SearchResult> baselineResults,
         IReadOnlyList<SearchResult> rerankedResults)
@@ -318,7 +318,7 @@ public class RagEvaluationTests
         if (!testCase.AnswerExpected ||
             testCase.ExpectedAnswerFragments.Length == 0)
         {
-            Console.WriteLine(
+            _output.WriteLine(
                 "   MRR skipped: no expected answer fragments.");
             return;
         }
@@ -331,20 +331,20 @@ public class RagEvaluationTests
             testCase.ExpectedAnswerFragments,
             rerankedResults);
 
-        Console.WriteLine(
+        _output.WriteLine(
             $"   MRR: before {baselineMrr:F3}, " +
             $"after {rerankedMrr:F3}, " +
             $"change {rerankedMrr - baselineMrr:+0.000;-0.000;0.000}");
     }
 
 
-    private static void WriteAggregateRetrievalSummary(
+    private void WriteAggregateRetrievalSummary(
         IReadOnlyList<RagEvaluationTestCase> testCases,
         IReadOnlyDictionary<string, (
             IReadOnlyList<SearchResult> Baseline,
             IReadOnlyList<SearchResult> Reranked)> retrievalResults)
     {
-        int[] cutoffs = [1, 3, 5, 10];
+        int[] cutoffs = [1, 3, 5];
 
         var eligibleCases = testCases
             .Where(testCase =>
@@ -354,7 +354,7 @@ public class RagEvaluationTests
 
         if (eligibleCases.Count == 0)
         {
-            Console.WriteLine("No eligible cases for retrieval summary.");
+            _output.WriteLine("No eligible cases for retrieval summary.");
             return;
         }
 
@@ -377,10 +377,10 @@ public class RagEvaluationTests
         baselineMrr /= eligibleCases.Count;
         rerankedMrr /= eligibleCases.Count;
 
-        Console.WriteLine();
-        Console.WriteLine("Aggregate Retrieval Summary");
-        Console.WriteLine($"Eligible questions: {eligibleCases.Count}");
-        Console.WriteLine(
+        _output.WriteLine("");
+        _output.WriteLine("Aggregate Retrieval Summary");
+        _output.WriteLine($"Eligible questions: {eligibleCases.Count}");
+        _output.WriteLine(
             $"MRR: baseline {baselineMrr:F3}, " +
             $"reranked {rerankedMrr:F3}, " +
             $"change {rerankedMrr - baselineMrr:+0.000;-0.000;0.000}");
@@ -407,7 +407,7 @@ public class RagEvaluationTests
             baselineRecall /= eligibleCases.Count;
             rerankedRecall /= eligibleCases.Count;
 
-            Console.WriteLine(
+            _output.WriteLine(
                 $"Evidence Recall@{cutoff}: " +
                 $"baseline {baselineRecall:P1}, " +
                 $"reranked {rerankedRecall:P1}, " +
