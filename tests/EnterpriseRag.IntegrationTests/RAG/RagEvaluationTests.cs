@@ -2,8 +2,8 @@
 using EnterpriseRag.Application.Documents;
 using EnterpriseRag.Application.Models;
 using EnterpriseRag.Application.RAG;
-using EnterpriseRag.Infrastructure;
 using EnterpriseRag.Infrastructure.AI;
+using EnterpriseRag.Infrastructure.Citation;
 using EnterpriseRag.Infrastructure.Search;
 using EnterpriseRag.Infrastructure.VectorStore;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +37,12 @@ public class RagEvaluationTests
             });
 
         services.AddHttpClient<IChatService, OllamaChatService>(
+            client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:11434");
+            });
+
+        services.AddHttpClient<ICitationSupportChecker, OllamaCitationSupportChecker>(
             client =>
             {
                 client.BaseAddress = new Uri("http://localhost:11434");
