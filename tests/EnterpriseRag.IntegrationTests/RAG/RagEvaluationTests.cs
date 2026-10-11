@@ -66,6 +66,10 @@ public class RagEvaluationTests
 
         var results = new List<RagEvaluationResult>();
 
+        var totalCitationsValidated = 0;
+        var supportedCitations = 0;
+        var rejectedCitations = 0;
+
         foreach (var testCase in RagEvaluationTestCases.TestCases)
         {
             await WriteRetrievalDiagnosticsAsync(
@@ -75,9 +79,19 @@ public class RagEvaluationTests
                 documentSearch,
                 retrievalResults);
 
-            var answer = await ragService.AskAsync(
-                testCase.Question,
-                CancellationToken.None);
+            var execution = await ragService.AskWithDiagnosticsAsync(testCase.Question, CancellationToken.None);
+
+            var answer = execution.Answer;
+            var citationValidation = execution.CitationValidation;
+
+            _output.WriteLine(
+                $"Citations validated: {citationValidation.SupportedCitationsCount}/" +
+                $"{citationValidation.TotalCitationsCount} supported; " +
+                $"{citationValidation.UnsupportedCitations.Count} rejected.");
+
+            totalCitationsValidated += citationValidation.TotalCitationsCount;
+            supportedCitations += citationValidation.SupportedCitationsCount;
+            rejectedCitations += citationValidation.UnsupportedCitations.Count;
 
             var answerContainsExpectedFragments =
                 testCase.ExpectedAnswerFragments.Length > 0 &&
@@ -122,7 +136,7 @@ public class RagEvaluationTests
                 citationsMatchExpectedDocuments);
         }
         WriteAggregateRetrievalSummary(RagEvaluationTestCases.TestCases, retrievalResults);
-        WriteEvaluationSummary(results);
+        WriteEvaluationSummary(results, totalCitationsValidated, supportedCitations, rejectedCitations);
     }
 
     private async Task WriteRetrievalDiagnosticsAsync(RagEvaluationTestCase testCase,
@@ -421,7 +435,7 @@ public class RagEvaluationTests
         }
     }
 
-    private void WriteEvaluationSummary(IReadOnlyList<RagEvaluationResult> results)
+    private void WriteEvaluationSummary(IReadOnlyList<RagEvaluationResult> results, int totalCitationsValidated, int supportedCitations, int rejectedCitations)
     {
         var answerableCases = results
             .Where(result => result.AnswerExpected)
@@ -450,5 +464,17 @@ public class RagEvaluationTests
 
         Assert.Equal(answerableCases.Count, answerableCorrect);
         Assert.Equal(unanswerableCases.Count, refusalCorrect);
+
+        _output.WriteLine("");
+        _output.WriteLine("Citation Validation Summary");
+        _output.WriteLine($"Total citations validated: {totalCitationsValidated}");
+        _output.WriteLine($"Supported citations: {supportedCitations}");
+        _output.WriteLine($"Rejected citations: {rejectedCitations}");
+
+        var supportRate = totalCitationsValidated == 0
+            ? 0
+            : 100.0 * supportedCitations / totalCitationsValidated;
+
+        _output.WriteLine($"Citation support rate: {supportRate:F1}%");
     }
 }

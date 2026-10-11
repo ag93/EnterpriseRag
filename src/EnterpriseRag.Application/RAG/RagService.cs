@@ -18,11 +18,15 @@ namespace EnterpriseRag.Application.RAG
 
         public async Task<RagAnswer> AskAsync(string question, CancellationToken cancellationToken)
         {
+            var result = await AskWithDiagnosticsAsync(question, cancellationToken);
+            return result.Answer;
+        }
+
+        public async Task<RagExecutionResult> AskWithDiagnosticsAsync (string question, CancellationToken cancellationToken)
+        {
             if (string.IsNullOrWhiteSpace(question))
             {
-                throw new ArgumentException(
-                    "Question is required.",
-                    nameof(question));
+                throw new ArgumentException("Question is required.", nameof(question));
             }
 
             var searchRequest = new SearchRequest
@@ -41,13 +45,20 @@ namespace EnterpriseRag.Application.RAG
             };
 
             var answer = await _chatService.GenerateAsync(context, cancellationToken);
-            var validation = await _citationValidator.ValidateAsync(answer.Answer, answer.Citations, results, cancellationToken); 
-            answer.Citations = answer.Citations.
-                Where(citation => !validation.UnsupportedCitations.Any(
-                    unsupported => unsupported.DocumentId == citation.DocumentId && 
-                    unsupported.ChunkId == citation.ChunkId)).ToList(); 
+            var validation = await _citationValidator.ValidateAsync(answer.Answer, answer.Citations, results, cancellationToken);
 
-            return answer;
+            answer.Citations = answer.Citations
+                .Where(citation => !validation.UnsupportedCitations.Any(
+                    unsupported =>
+                        unsupported.DocumentId == citation.DocumentId &&
+                        unsupported.ChunkId == citation.ChunkId))
+                .ToList();
+
+            return new RagExecutionResult
+            {
+                Answer = answer,
+                CitationValidation = validation
+            };
         }
     }
 }

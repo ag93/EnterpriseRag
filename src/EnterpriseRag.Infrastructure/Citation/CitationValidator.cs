@@ -50,7 +50,9 @@ namespace EnterpriseRag.Infrastructure.Citation
             return new CitationValidationResult
             {
                 IsSupported = unsupportedCitations.Count == 0,
-                UnsupportedCitations = unsupportedCitations
+                UnsupportedCitations = unsupportedCitations,
+                TotalCitationsCount = citations.Count,
+                SupportedCitationsCount = citations.Count - unsupportedCitations.Count
             };
         }
     }
