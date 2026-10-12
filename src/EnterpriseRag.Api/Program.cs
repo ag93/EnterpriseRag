@@ -3,6 +3,7 @@ using EnterpriseRag.Application.Documents;
 using EnterpriseRag.Application.Documents.UploadDocuments;
 using EnterpriseRag.Application.RAG;
 using EnterpriseRag.Infrastructure.AI;
+using EnterpriseRag.Infrastructure.Authorization;
 using EnterpriseRag.Infrastructure.Citation;
 using EnterpriseRag.Infrastructure.Documents;
 using EnterpriseRag.Infrastructure.Persistence;
@@ -27,49 +28,37 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-var storagePath = Path.Combine(
-    builder.Environment.ContentRootPath,
-    "data",
-    "documents");
+var storagePath = Path.Combine(builder.Environment.ContentRootPath, "data", "documents");
 builder.Services.AddSingleton<IDocumentStorage>(new LocalFileStorage(storagePath));
 builder.Services.AddScoped<UploadDocumentHandler>();
-
-var databasePath = Path.Combine(
-    builder.Environment.ContentRootPath,
-    "data",
-    "enterprise-rag.db");
-builder.Services.AddDbContext<ApplicationDbContext>(
-    options =>
-        options.UseSqlite($"Data Source={databasePath}"));
+var databasePath = Path.Combine(builder.Environment.ContentRootPath, "data", "enterprise-rag.db");
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={databasePath}"));
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
-
+builder.Services.AddScoped<IDocumentAccessRepository, DocumentAccessRepository>();
 builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 builder.Services.AddScoped<ITextChunker, SimpleTextChunker>();
-builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(
-    client =>
+builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(client =>
     {
         client.BaseAddress = new Uri("http://localhost:11434");
     });
-
-builder.Services.AddHttpClient<IChatService, OllamaChatService>(
-    client =>
+builder.Services.AddHttpClient<IChatService, OllamaChatService>(client =>
     {
         client.BaseAddress = new Uri("http://localhost:11434");
     });
-builder.Services.AddHttpClient<ICitationSupportChecker, OllamaCitationSupportChecker>(
-    client =>
+builder.Services.AddHttpClient<ICitationSupportChecker, OllamaCitationSupportChecker>(client =>
     {
         client.BaseAddress = new Uri("http://localhost:11434");
     });
 builder.Services.AddScoped<IRagService, RagService>();
-builder.Services.AddSingleton(
-    new QdrantClient("localhost", 6334));
-
+builder.Services.AddScoped<IDocumentAuthorizationService, DocumentAuthorizationService>();
+builder.Services.AddSingleton(new QdrantClient("localhost", 6334));
 builder.Services.AddScoped<IVectorStore, QdrantVectorStore>();
 builder.Services.AddScoped<IDocumentIndexer, DocumentIndexer>();
 builder.Services.AddScoped<IDocumentSearch, DocumentSearch>();
 builder.Services.AddScoped<IReranker, KeywordReranker>();
 builder.Services.AddScoped<ICitationValidator, CitationValidator>();
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddScoped<ICurrentUser, LocalCurrentUser>();
 
 var app = builder.Build();
 

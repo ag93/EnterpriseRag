@@ -8,12 +8,17 @@ namespace EnterpriseRag.Application.RAG
         private readonly IDocumentSearch _documentSearch;
         private readonly IChatService _chatService;
         private readonly ICitationValidator _citationValidator;
+        private readonly IDocumentAuthorizationService _documentAuthorizationService;
 
-        public RagService(IDocumentSearch documentSearch, IChatService chatService, ICitationValidator citationValidator)
+        public RagService(IDocumentSearch documentSearch,
+                          IChatService chatService,
+                          ICitationValidator citationValidator,
+                          IDocumentAuthorizationService documentAuthorizationService)
         {
             _documentSearch = documentSearch;
             _chatService = chatService;
             _citationValidator = citationValidator;
+            _documentAuthorizationService = documentAuthorizationService;
         }
 
         public async Task<RagAnswer> AskAsync(string question, CancellationToken cancellationToken)
@@ -28,12 +33,18 @@ namespace EnterpriseRag.Application.RAG
             {
                 throw new ArgumentException("Question is required.", nameof(question));
             }
-
+            
+            var authorizedDocumentIds = await _documentAuthorizationService.GetAuthorizedDocumentIdsAsync(cancellationToken);
+            
             var searchRequest = new SearchRequest
             {
                 Query = question,
                 TopK = 5,
-                CandidateCount = 20
+                CandidateCount = 20,
+                Filter = new()
+                {
+                    DocumentIds = authorizedDocumentIds
+                }
             };
 
             var results = await _documentSearch.SearchAsync(searchRequest, cancellationToken);

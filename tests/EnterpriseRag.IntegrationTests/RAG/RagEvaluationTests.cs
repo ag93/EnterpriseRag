@@ -3,9 +3,13 @@ using EnterpriseRag.Application.Documents;
 using EnterpriseRag.Application.Models;
 using EnterpriseRag.Application.RAG;
 using EnterpriseRag.Infrastructure.AI;
+using EnterpriseRag.Infrastructure.Authorization;
 using EnterpriseRag.Infrastructure.Citation;
+using EnterpriseRag.Infrastructure.Persistence;
 using EnterpriseRag.Infrastructure.Search;
 using EnterpriseRag.Infrastructure.VectorStore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Qdrant.Client;
 using Xunit.Abstractions;
@@ -50,11 +54,33 @@ public class RagEvaluationTests
 
         services.AddSingleton(new QdrantClient("localhost", 6334));
 
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.Testing.json", optional: false)
+            .Build();
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+        .AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["LocalIdentity:IsAuthenticated"] = "true",
+            ["LocalIdentity:Groups:0"] = "Admins"
+        })
+        .Build());
+
+        var databasePath = configuration["Evaluation:DatabasePath"];
+        if (string.IsNullOrWhiteSpace(databasePath))
+            throw new InvalidOperationException("Evaluation:DatabasePath is missing from appsettings.Testing.json.");
+        if (!File.Exists(databasePath))
+            throw new FileNotFoundException("The RAG evaluation database was not found.", databasePath);
+        
+        services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite($"Data Source={databasePath}"));
         services.AddScoped<IVectorStore, QdrantVectorStore>();
         services.AddScoped<IReranker, KeywordReranker>();
         services.AddScoped<IDocumentSearch, DocumentSearch>();
         services.AddScoped<IRagService, RagService>();
         services.AddScoped<ICitationValidator, CitationValidator>();
+        services.AddScoped<ICurrentUser, LocalCurrentUser>();
+        services.AddScoped<IDocumentAuthorizationService, DocumentAuthorizationService>();
+        services.AddScoped<IDocumentAccessRepository, DocumentAccessRepository>();
 
         await using var serviceProvider = services.BuildServiceProvider();
         using var scope = serviceProvider.CreateScope();
@@ -65,7 +91,6 @@ public class RagEvaluationTests
         var embeddingService = scope.ServiceProvider.GetRequiredService<IEmbeddingService>();
 
         var results = new List<RagEvaluationResult>();
-
         var totalCitationsValidated = 0;
         var supportedCitations = 0;
         var rejectedCitations = 0;

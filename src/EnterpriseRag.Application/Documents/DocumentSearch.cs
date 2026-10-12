@@ -41,8 +41,6 @@ namespace EnterpriseRag.Application.Documents
                     nameof(request));
             }
 
-            //Add filter logic here?
-
             var embedding = await _embeddingService.GenerateEmbeddingAsync(request.Query, cancellationToken);
             var candidates = await _vectorStore.SearchAsync(embedding, request.CandidateCount, request.Filter, cancellationToken);
 

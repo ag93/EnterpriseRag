@@ -47,7 +47,8 @@ namespace EnterpriseRag.Application.Tests
             var sut = new RagService(
                 new FakeDocumentSearch(searchResults),
                 new FakeChatService(answer),
-                new FakeCitationValidator(validationResult));
+                new FakeCitationValidator(validationResult),
+                new FakeDocumentAuthorizationService());
 
             // Act
             var result = await sut.AskAsync(
@@ -114,7 +115,8 @@ namespace EnterpriseRag.Application.Tests
             var sut = new RagService(
                 documentSearch,
                 chatService,
-                citationValidator);
+                citationValidator,
+                new FakeDocumentAuthorizationService());
 
             // Act
             var result = await sut.AskAsync(
@@ -158,6 +160,20 @@ namespace EnterpriseRag.Application.Tests
                 CancellationToken cancellationToken)
             {
                 return Task.FromResult(validationResult);
+            }
+        }
+
+        private sealed class FakeDocumentAuthorizationService : IDocumentAuthorizationService
+        {
+            private readonly IReadOnlyCollection<Guid> _documentIds;
+            public FakeDocumentAuthorizationService(IReadOnlyCollection<Guid>? documentIds = null)
+            {
+                _documentIds = documentIds ?? Array.Empty<Guid>();
+            }
+
+            public Task<IReadOnlyCollection<Guid>> GetAuthorizedDocumentIdsAsync(CancellationToken cancellationToken)
+            {
+                return Task.FromResult(_documentIds);
             }
         }
     }
