@@ -58,13 +58,7 @@ public class RagEvaluationTests
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.Testing.json", optional: false)
             .Build();
-        services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
-        .AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["LocalIdentity:IsAuthenticated"] = "true",
-            ["LocalIdentity:Groups:0"] = "Admins"
-        })
-        .Build());
+        services.AddSingleton<IConfiguration>(configuration);
 
         var databasePath = configuration["Evaluation:DatabasePath"];
         if (string.IsNullOrWhiteSpace(databasePath))
