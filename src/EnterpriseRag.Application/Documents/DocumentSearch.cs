@@ -44,6 +44,20 @@ namespace EnterpriseRag.Application.Documents
             var embedding = await _embeddingService.GenerateEmbeddingAsync(request.Query, cancellationToken);
             var candidates = await _vectorStore.SearchAsync(embedding, request.CandidateCount, request.Filter, cancellationToken);
 
+            if (request.Filter?.DocumentIds is { } authorizedIds)
+            {
+                if (authorizedIds.Count == 0)
+                {
+                    return Array.Empty<SearchResult>();
+                }
+
+                var authorizedIdSet = authorizedIds.ToHashSet();
+
+                candidates = candidates
+                    .Where(candidate => authorizedIdSet.Contains(candidate.DocumentId))
+                    .ToList();
+            }
+
             var searchResults = candidates
                 .Select(result => new SearchResult
                 {

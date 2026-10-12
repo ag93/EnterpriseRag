@@ -35,7 +35,26 @@ namespace EnterpriseRag.Application.RAG
             }
             
             var authorizedDocumentIds = await _documentAuthorizationService.GetAuthorizedDocumentIdsAsync(cancellationToken);
-            
+
+            if (authorizedDocumentIds.Count == 0)
+            {
+                return new RagExecutionResult
+                {
+                    Answer = new RagAnswer
+                    {
+                        Answer = "You don't have access to any documents for this request.",
+                        Citations = []
+                    },
+                    CitationValidation = new CitationValidationResult
+                    {
+                        IsSupported = false,
+                        TotalCitationsCount = 0,
+                        SupportedCitationsCount = 0,
+                        UnsupportedCitations = []
+                    }
+                };
+            }
+
             var searchRequest = new SearchRequest
             {
                 Query = question,

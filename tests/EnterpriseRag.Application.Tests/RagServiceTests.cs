@@ -10,6 +10,7 @@ namespace EnterpriseRag.Application.Tests
         public async Task AskAsync_RemovesAllCitations_WhenAllAreUnsupported()
         {
             // Arrange
+            var documentId = Guid.NewGuid();
             var answer = new RagAnswer
             {
                 Answer = "The Airbus A350 has 320 seats.",
@@ -17,7 +18,7 @@ namespace EnterpriseRag.Application.Tests
             {
                 new()
                 {
-                    DocumentId = Guid.NewGuid(),
+                    DocumentId = documentId,
                     ChunkId = Guid.NewGuid(),
                     FileName = "A350.pdf",
                     PageNumber = 1
@@ -29,7 +30,7 @@ namespace EnterpriseRag.Application.Tests
             {
                 new()
                 {
-                    DocumentId = Guid.NewGuid(),
+                    DocumentId = documentId,
                     ChunkId = Guid.NewGuid(),
                     FileName = "A350.pdf",
                     Content = "The cabin features an entertainment system.",
@@ -48,7 +49,7 @@ namespace EnterpriseRag.Application.Tests
                 new FakeDocumentSearch(searchResults),
                 new FakeChatService(answer),
                 new FakeCitationValidator(validationResult),
-                new FakeDocumentAuthorizationService());
+                new FakeDocumentAuthorizationService([documentId]));
 
             // Act
             var result = await sut.AskAsync(
@@ -116,7 +117,7 @@ namespace EnterpriseRag.Application.Tests
                 documentSearch,
                 chatService,
                 citationValidator,
-                new FakeDocumentAuthorizationService());
+                new FakeDocumentAuthorizationService([documentId]));
 
             // Act
             var result = await sut.AskAsync(
