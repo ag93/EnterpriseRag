@@ -481,8 +481,7 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# Local RAG seed documents
-**/data/seed-documents/
-**/data/documents/
+# Local API data (database and uploaded documents)
+src/EnterpriseRag.Api/data/
 
 **/appsettings.Development.json
