@@ -482,5 +482,7 @@ $RECYCLE.BIN/
 *.swp
 
 # Local RAG seed documents
-data/seed-documents/
-data/documents/
+**/data/seed-documents/
+**/data/documents/
+
+**/appsettings.Development.json

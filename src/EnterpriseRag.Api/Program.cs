@@ -10,7 +10,10 @@ using EnterpriseRag.Infrastructure.Persistence;
 using EnterpriseRag.Infrastructure.Search;
 using EnterpriseRag.Infrastructure.Storage;
 using EnterpriseRag.Infrastructure.VectorStore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Web;
 using Microsoft.OpenApi;
 using Qdrant.Client;
 
@@ -26,6 +29,34 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Enterprise document search and RAG API"
     });
+    var tenantId = builder.Configuration["EntraId:TenantId"]!;
+    var apiAudience = builder.Configuration["EntraId:Audience"]!;
+    var apiScope = $"{apiAudience.TrimEnd('/')}/access_as_user";
+
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows
+        {
+            AuthorizationCode = new OpenApiOAuthFlow
+            {
+                AuthorizationUrl = new Uri(
+                    $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize"),
+                TokenUrl = new Uri(
+                    $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token"),
+                Scopes = new Dictionary<string, string>
+                {
+                    [apiScope] = "Access EnterpriseRag API as the signed-in user"
+                }
+            }
+        }
+    });
+
+    options.AddSecurityRequirement(document =>
+        new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("oauth2", document)] = [apiScope]
+        });
 });
 
 var storagePath = Path.Combine(builder.Environment.ContentRootPath, "data", "documents");
@@ -57,13 +88,33 @@ builder.Services.AddScoped<IDocumentIndexer, DocumentIndexer>();
 builder.Services.AddScoped<IDocumentSearch, DocumentSearch>();
 builder.Services.AddScoped<IReranker, KeywordReranker>();
 builder.Services.AddScoped<ICitationValidator, CitationValidator>();
-if (builder.Environment.IsDevelopment())
-    builder.Services.AddScoped<ICurrentUser, LocalCurrentUser>();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("EntraId"));
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+
+app.UseSwaggerUI(options =>
+{
+    options.OAuthClientId(
+        builder.Configuration["Swagger:ClientId"]!);
+
+    options.OAuthUsePkce();
+    options.OAuthScopeSeparator(" ");
+});
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.Run();
 
