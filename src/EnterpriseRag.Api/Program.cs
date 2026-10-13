@@ -117,6 +117,7 @@ app.UseSwaggerUI(options =>
 });
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
 app.Run();
 
