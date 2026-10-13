@@ -1,6 +1,5 @@
 ﻿using EnterpriseRag.Application.Abstractions;
 using EnterpriseRag.Application.Documents.UploadDocuments;
-using EnterpriseRag.Infrastructure.Documents;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnterpriseRag.Api.Controllers

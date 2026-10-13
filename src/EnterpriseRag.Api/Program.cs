@@ -101,6 +101,8 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
+
+builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 app.UseSwagger();
@@ -118,3 +120,4 @@ app.UseAuthorization();
 app.MapControllers();
 app.Run();
 
+public partial class Program { }
