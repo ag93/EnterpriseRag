@@ -1,7 +1,4 @@
 ﻿using EnterpriseRag.IntegrationTests.Infrastructure;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
 
 namespace EnterpriseRag.IntegrationTests;
 
