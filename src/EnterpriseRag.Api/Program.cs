@@ -93,6 +93,16 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 
+var adminGroupIds = builder.Configuration
+    .GetSection("EntraId:GroupMappings")
+    .Get<Dictionary<string, string>>()?
+    .Where(mapping =>
+        string.Equals(
+            mapping.Value,
+            "Admins",
+            StringComparison.OrdinalIgnoreCase))
+    .Select(mapping => mapping.Key)
+    .ToArray() ?? Array.Empty<string>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("EntraId"));
 
 builder.Services.AddAuthorization(options =>
@@ -100,6 +110,15 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
+    options.AddPolicy("AdminsOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireAssertion(context =>
+            adminGroupIds.Any(groupId =>
+                context.User.Claims.Any(claim =>
+                    claim.Type == "groups"
+                    && claim.Value == groupId)));
+    });
 });
 
 builder.Services.AddHealthChecks();
