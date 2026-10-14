@@ -23,8 +23,8 @@ public class IndexReconciliationServiceTests
         var result = await service.ReconcileAsync(CancellationToken.None);
 
         Assert.Equal([missingChunkId], result.MissingInVectorStore);
-
         Assert.Equal([orphanedChunkId], result.OrphanedInVectorStore);
+        Assert.True(result.HadInconsistencies);
     }
 
     [Fact]
@@ -42,6 +42,7 @@ public class IndexReconciliationServiceTests
 
         Assert.Empty(result.MissingInVectorStore);
         Assert.Empty(result.OrphanedInVectorStore);
+        Assert.False(result.HadInconsistencies);
     }
 
     [Fact]
@@ -74,6 +75,7 @@ public class IndexReconciliationServiceTests
         Assert.Equal([orphanedChunkId], result.OrphanedInVectorStore);
         Assert.Equal([documentId], indexer.IndexedDocumentIds);
         Assert.Equal([orphanedChunkId], vectorStore.DeletedChunkIds);
+        Assert.True(result.HadInconsistencies);
     }
 
     [Fact]
@@ -146,6 +148,7 @@ public class IndexReconciliationServiceTests
 
         Assert.Empty(secondResult.MissingInVectorStore);
         Assert.Empty(secondResult.OrphanedInVectorStore);
+        Assert.False(secondResult.HadInconsistencies);
     }
 
     private sealed class FailingDocumentIndexer : IDocumentIndexer

@@ -89,20 +89,9 @@ builder.Services.AddScoped<IDocumentSearch, DocumentSearch>();
 builder.Services.AddScoped<IReranker, KeywordReranker>();
 builder.Services.AddScoped<ICitationValidator, CitationValidator>();
 builder.Services.AddScoped<IIndexReconciliationService, IndexReconciliationService>();
+builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
-
-var adminGroupIds = builder.Configuration
-    .GetSection("EntraId:GroupMappings")
-    .Get<Dictionary<string, string>>()?
-    .Where(mapping =>
-        string.Equals(
-            mapping.Value,
-            "Admins",
-            StringComparison.OrdinalIgnoreCase))
-    .Select(mapping => mapping.Key)
-    .ToArray() ?? Array.Empty<string>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("EntraId"));
 
 builder.Services.AddAuthorization(options =>
@@ -110,14 +99,33 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
+
     options.AddPolicy("AdminsOnly", policy =>
     {
         policy.RequireAuthenticatedUser();
         policy.RequireAssertion(context =>
-            adminGroupIds.Any(groupId =>
+        {
+            var configuration = context.Resource is HttpContext httpContext
+                ? httpContext.RequestServices.GetRequiredService<IConfiguration>()
+                : null;
+
+            if (configuration is null)
+            {
+                return false;
+            }
+
+            var adminGroupIds = configuration
+                .GetSection("EntraId:GroupMappings")
+                .Get<Dictionary<string, string>>()?
+                .Where(mapping => string.Equals(
+                    mapping.Value, "Admins", StringComparison.OrdinalIgnoreCase))
+                .Select(mapping => mapping.Key)
+                .ToArray() ?? Array.Empty<string>();
+
+            return adminGroupIds.Any(groupId =>
                 context.User.Claims.Any(claim =>
-                    claim.Type == "groups"
-                    && claim.Value == groupId)));
+                    claim.Type == "groups" && claim.Value == groupId));
+        });
     });
 });
 

@@ -84,6 +84,10 @@ public sealed class EnterpriseRagApiFactory : WebApplicationFactory<Program>
                 services.RemoveAll<ICitationValidator>();
                 services.AddScoped<ICitationValidator, UnexpectedCitationValidator>();
             }
+
+            services.RemoveAll<IIndexReconciliationService>();
+            services.AddSingleton<IIndexReconciliationService>(
+                new FakeIndexReconciliationService());
         });
     }
 
@@ -96,6 +100,16 @@ public sealed class EnterpriseRagApiFactory : WebApplicationFactory<Program>
             _connection.Dispose();
         }
     }
+
+
+    private sealed class FakeIndexReconciliationService : IIndexReconciliationService
+    {
+        public Task<IndexReconciliationResult> ReconcileAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new IndexReconciliationResult());
+        }
+    }
+
 
     public async Task SeedAdminOnlyDocumentAsync()
     {
