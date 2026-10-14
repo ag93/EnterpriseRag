@@ -13,9 +13,7 @@ public class DocumentRepository : IDocumentRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddAsync(
-        Document document,
-        CancellationToken cancellationToken)
+    public async Task AddAsync(Document document, CancellationToken cancellationToken)
     {
         await _dbContext.Documents.AddAsync(
             document,
@@ -24,9 +22,7 @@ public class DocumentRepository : IDocumentRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Document?> GetByIdAsync(
-        Guid id,
-        CancellationToken cancellationToken)
+    public async Task<Document?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _dbContext.Documents
             .FirstOrDefaultAsync(
@@ -39,6 +35,27 @@ public class DocumentRepository : IDocumentRepository
         return await _dbContext.DocumentChunks
             .Where(x => x.DocumentId == documentId)
             .OrderBy(x => x.ChunkIndex)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<Guid>> GetAllChunkIdsAsync(CancellationToken cancellationToken)
+    {
+        return await _dbContext.DocumentChunks
+            .AsNoTracking()
+            .Select(chunk => chunk.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<Guid>> GetDocumentIdsForChunkIdsAsync(IReadOnlyCollection<Guid> chunkIds, CancellationToken cancellationToken)
+    {
+        if (chunkIds.Count == 0)
+            return Array.Empty<Guid>();
+
+        return await _dbContext.DocumentChunks
+            .AsNoTracking()
+            .Where(chunk => chunkIds.Contains(chunk.Id))
+            .Select(chunk => chunk.DocumentId)
+            .Distinct()
             .ToListAsync(cancellationToken);
     }
 }

@@ -212,6 +212,10 @@ public class DocumentSearchTests
         {
             return Task.CompletedTask;
         }
+
+        public Task<IReadOnlyCollection<Guid>> GetExistingChunkIdsAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task DeleteAsync(IReadOnlyCollection<Guid> chunkIds, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     private sealed class FakeReranker : IReranker

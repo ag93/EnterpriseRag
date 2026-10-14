@@ -88,6 +88,7 @@ builder.Services.AddScoped<IDocumentIndexer, DocumentIndexer>();
 builder.Services.AddScoped<IDocumentSearch, DocumentSearch>();
 builder.Services.AddScoped<IReranker, KeywordReranker>();
 builder.Services.AddScoped<ICitationValidator, CitationValidator>();
+builder.Services.AddScoped<IIndexReconciliationService, IndexReconciliationService>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
@@ -101,12 +102,9 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
-
 builder.Services.AddHealthChecks();
 var app = builder.Build();
-
 app.UseSwagger();
-
 app.UseSwaggerUI(options =>
 {
     options.OAuthClientId(
