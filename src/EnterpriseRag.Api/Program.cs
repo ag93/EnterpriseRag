@@ -90,6 +90,7 @@ builder.Services.AddScoped<IReranker, KeywordReranker>();
 builder.Services.AddScoped<ICitationValidator, CitationValidator>();
 builder.Services.AddScoped<IIndexReconciliationService, IndexReconciliationService>();
 builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
+//builder.Services.AddScoped<ICurrentUser, LocalCurrentUser>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("EntraId"));

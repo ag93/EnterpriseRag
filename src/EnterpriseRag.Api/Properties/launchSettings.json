@@ -3,8 +3,7 @@
     "http": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ENTERPRISE_RAG_EVALUATION_DB": "C:\\Users\\Aniket\\source\\repos\\EnterpriseRag\\src\\EnterpriseRag.Api"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5019"

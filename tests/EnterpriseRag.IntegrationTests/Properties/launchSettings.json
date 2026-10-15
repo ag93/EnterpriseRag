@@ -1,10 +1,7 @@
 {
   "profiles": {
     "EnterpriseRag.IntegrationTests": {
-      "commandName": "Project",
-      "environmentVariables": {
-        "ENTERPRISE_RAG_EVALUATION_DB": "C:\\Users\\Aniket\\source\\repos\\EnterpriseRag\\src\\EnterpriseRag.Api\\data\\enterprise-rag.db"
-      }
+      "commandName": "Project"
     }
   }
 }
